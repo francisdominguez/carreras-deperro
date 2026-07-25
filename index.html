@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control y Análisis de Carreras</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Registro de Carreras - 8 Perros</h1>
+            <p>Captura rápida y análisis de secuencias</p>
+        </header>
+
+        <!-- Formulario de Registro -->
+        <section class="card">
+            <h2>Registrar Nueva Carrera</h2>
+            <form id="raceForm">
+                <div class="input-group">
+                    <label for="raceId">ID o Número de Carrera:</label>
+                    <input type="text" id="raceId" required placeholder="Ej. 0353">
+                </div>
+                
+                <div class="input-group">
+                    <label for="winner">Perro Ganador (1 al 8):</label>
+                    <select id="winner" required>
+                        <option value="">Selecciona el ganador</option>
+                        <option value="1">Perro 1</option>
+                        <option value="2">Perro 2</option>
+                        <option value="3">Perro 3</option>
+                        <option value="4">Perro 4</option>
+                        <option value="5">Perro 5</option>
+                        <option value="6">Perro 6</option>
+                        <option value="7">Perro 7</option>
+                        <option value="8">Perro 8</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-primary">Guardar Carrera</button>
+            </form>
+        </section>
+
+        <!-- Panel de Resultados y Estadísticas -->
+        <section class="card">
+            <h2>Estadísticas y Últimos Ganadores</h2>
+            <div id="statsContainer">
+                <p>Cargando datos...</p>
+            </div>
+            <ul id="historyList"></ul>
+        </section>
+    </div>
+
+    <!-- Firebase SDK (Versión modular por CDN) -->
+    <script type="module" src="app.js"></script>
+</body>
+</html>
