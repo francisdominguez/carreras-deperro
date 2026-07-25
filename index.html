@@ -10,10 +10,31 @@
 <div class="container">
   <header>
     <h1>🏆 Control Profesional de Carreras</h1>
-    <p>Motor de análisis con 12 algoritmos + Generador de Combinaciones</p>
+    <p>Motor de análisis con 12 algoritmos + OCR + Combinaciones</p>
   </header>
 
-  <!-- DETECTOR DE RÉGIMEN DEL DÍA -->
+  <!-- 🆕 SUBIR FOTO DEL TICKET (OCR) -->
+  <div class="card ocr-card">
+    <h2>📸 Subir Foto del Ticket (Lectura Automática)</h2>
+    <p class="ocr-desc">Toma foto o sube imagen del ticket impreso por la banca. El sistema extrae automáticamente: Carrera, 1ro y 2do.</p>
+    
+    <div class="ocr-buttons">
+      <label class="btn-ocr btn-camera">
+        📷 Tomar Foto
+        <input type="file" id="fileCamera" accept="image/*" capture="environment" style="display:none;">
+      </label>
+      <label class="btn-ocr btn-gallery">
+        🖼️ Subir de Galería
+        <input type="file" id="fileGallery" accept="image/*" style="display:none;">
+      </label>
+    </div>
+
+    <div id="ocrStatus" class="ocr-status"></div>
+    <div id="ocrImagePreview" class="ocr-image-preview"></div>
+    <div id="ocrResult" class="ocr-result"></div>
+  </div>
+
+  <!-- RÉGIMEN DEL DÍA -->
   <div class="card regime-card">
     <h2>🌡️ Régimen del Día (Patrón Actual)</h2>
     <div id="regimeContainer">
@@ -21,7 +42,7 @@
     </div>
   </div>
 
-  <!-- GENERADOR DE COMBINACIONES MÚLTIPLES -->
+  <!-- COMBINACIONES MÚLTIPLES -->
   <div class="card combos-card">
     <h2>🎰 Generador de Combinaciones Múltiples</h2>
     <p class="combos-desc">Con los mismos datos, el sistema genera múltiples estrategias de apuesta.</p>
@@ -32,8 +53,8 @@
 
   <!-- CARGA MASIVA MANUAL -->
   <div class="card bulk-card">
-    <h2>⚡ Carga Masiva Rápida (tickets de banca)</h2>
-    <p class="bulk-desc">Pega los tickets impresos. Un ticket por línea. Cada vez que inyectes nuevos datos, las combinaciones se recalculan solas.</p>
+    <h2>⚡ Carga Masiva Manual (pegar texto)</h2>
+    <p class="bulk-desc">Pega los tickets. Un ticket por línea.</p>
     <div class="bulk-format">
       <strong>📋 Formatos:</strong>
       <code>C125 3 5</code> · <code>C125, 3, 5</code> · <code>125-3-5</code>
@@ -87,13 +108,13 @@ C127 1 4"></textarea>
   <div class="card tips-card">
     <h2>💡 Consejos Profesionales</h2>
     <div class="tips-grid">
+      <div class="tip-item"><span class="tip-icon">📸</span><div><strong>Sube Fotos</strong><p>Toma foto al ticket y el sistema lee solo.</p></div></div>
       <div class="tip-item"><span class="tip-icon">🎯</span><div><strong>Score Compuesto</strong><p>Tu brújula principal.</p></div></div>
       <div class="tip-item"><span class="tip-icon">🔀</span><div><strong>Confirma con Markov</strong><p>Score + Markov = apuesta fuerte.</p></div></div>
-      <div class="tip-item"><span class="tip-icon">🎰</span><div><strong>Múltiples Combinaciones</strong><p>No juegues solo 1, usa varias estrategias.</p></div></div>
+      <div class="tip-item"><span class="tip-icon">🎰</span><div><strong>Múltiples Combinaciones</strong><p>No juegues solo 1, usa varias.</p></div></div>
       <div class="tip-item"><span class="tip-icon">💰</span><div><strong>Plan de Staking</strong><p>Nunca más del 5% del bankroll.</p></div></div>
-      <div class="tip-item"><span class="tip-icon">🌡️</span><div><strong>Régimen del Día</strong><p>Cada día tiene su patrón, adáptate.</p></div></div>
+      <div class="tip-item"><span class="tip-icon">🌡️</span><div><strong>Régimen del Día</strong><p>Cada día tiene su patrón.</p></div></div>
       <div class="tip-item"><span class="tip-icon">⚠️</span><div><strong>Anomalías = Oportunidades</strong><p>Patrones inusuales explotables.</p></div></div>
-      <div class="tip-item"><span class="tip-icon">🔥</span><div><strong>Rachas Hot/Cold</strong><p>Hot siguen, Cold pueden rebotar.</p></div></div>
       <div class="tip-item"><span class="tip-icon">🔗</span><div><strong>Palés Direccionales</strong><p>#3→#5 ≠ #5→#3.</p></div></div>
     </div>
     <div class="tip-warning">
@@ -118,6 +139,8 @@ C127 1 4"></textarea>
   </div>
 </div>
 
+<!-- Tesseract.js para OCR -->
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.4/dist/tesseract.min.js"></script>
 <script type="module" src="app.js"></script>
 </body>
 </html>
