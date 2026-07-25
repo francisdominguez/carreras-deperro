@@ -1,13 +1,14 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+// Tus credenciales reales configuradas
 const firebaseConfig = {
-    apiKey: "TU_API_KEY",
-    authDomain: "tu-proyecto.firebaseapp.com",
-    projectId: "tu-proyecto",
-    storageBucket: "tu-proyecto.appspot.com",
-    messagingSenderId: "tu-id",
-    appId: "tu-app-id"
+    apiKey: "AIzaSyDshiKVoMFpxXSHnthO682xXte6kQS57bw",
+    authDomain: "controlcarreras-736be.firebaseapp.com",
+    projectId: "controlcarreras-736be",
+    storageBucket: "controlcarreras-736be.firebasestorage.app",
+    messagingSenderId: "166900825212",
+    appId: "1:166900825212:web:7952db75a08b4536255df9"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -43,7 +44,6 @@ async function loadAndAnalyzeRaces() {
     historyList.innerHTML = "<li>Cargando historial...</li>";
 
     try {
-        // Traemos las últimas 200 carreras para tener una muestra sólida de patrones
         const q = query(collection(db, "races"), orderBy("timestamp", "desc"), limit(200));
         const querySnapshot = await getDocs(q);
         
@@ -52,7 +52,6 @@ async function loadAndAnalyzeRaces() {
             races.push(doc.data());
         });
 
-        // Como vienen ordenadas de más reciente a más antigua, invertimos para analizar cronológicamente
         let chronologicalRaces = [...races].reverse();
         let total = races.length;
 
@@ -62,48 +61,30 @@ async function loadAndAnalyzeRaces() {
             return;
         }
 
-        // 1. Conteo de Frecuencias Absolutas
         let counts = {1:0, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0};
         races.forEach(r => {
             if(counts[r.winner] !== undefined) counts[r.winner]++;
         });
 
-        // 2. Cálculo de Rachas (Carreras sin ganar de cada perro)
         let lastSeen = {1:999, 2:999, 3:999, 4:999, 5:999, 6:999, 7:999, 8:999};
         races.forEach((r, index) => {
-            // El índice 0 es el más reciente
             if (lastSeen[r.winner] === 999) {
-                lastSeen[r.winner] = index; // Distancia desde el presente
+                lastSeen[r.winner] = index;
             }
         });
 
-        // 3. Matriz de Transición Simple (¿Quién gana después del último ganador actual?)
         let lastWinner = races[0] ? races[0].winner : null;
-        let transitions = {};
-        for(let i = 0; i < chronologicalRaces.length - 1; i++) {
-            let current = chronologicalRaces[i].winner;
-            let next = chronologicalRaces[i+1].winner;
-            if(!transitions[current]) transitions[current] = {};
-            transitions[current][next] = (transitions[current][next] || 0) + 1;
-        }
 
-        // Generar sugerencias ponderadas combinando variables
         let recommendations = [];
         for (let i = 1; i <= 8; i++) {
             let freqPercent = (counts[i] / total) * 100;
-            let drought = lastSeen[i] === 999 ? total : lastSeen[i]; // Cuántas carreras lleva sin ganar
-            
-            // Puntuación heurística combinada: 
-            // - Premia al perro si lleva mucho tiempo sin salir (drought alto)
-            // - Considera su frecuencia histórica
+            let drought = lastSeen[i] === 999 ? total : lastSeen[i];
             let score = (drought * 1.5) - freqPercent;
             recommendations.push({ dog: i, score, drought, freqPercent: freqPercent.toFixed(1) });
         }
 
-        // Ordenar de mayor recomendación a menor
         recommendations.sort((a, b) => b.score - a.score);
 
-        // Renderizar Estadísticas y Predicciones en Pantalla
         let htmlStats = `
             <div style="margin-bottom: 15px;">
                 <p>Total analizadas: <strong>${total} carreras</strong> | Último ganador: <strong style="color:#6366f1;">Perro #${lastWinner || 'N/A'}</strong></p>
@@ -138,7 +119,6 @@ async function loadAndAnalyzeRaces() {
         htmlStats += `</div>`;
         statsContainer.innerHTML = htmlStats;
 
-        // Renderizar Historial Reciente
         let htmlHistory = "";
         races.slice(0, 15).forEach(r => {
             htmlHistory += `<li><span>Carrera: <strong>${r.raceId}</strong></span> <span style="color: #6366f1;">Ganó: Perro #${r.winner}</span></li>`;
@@ -151,5 +131,4 @@ async function loadAndAnalyzeRaces() {
     }
 }
 
-// Cargar al iniciar
 loadAndAnalyzeRaces();
