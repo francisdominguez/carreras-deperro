@@ -3,12 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<<<<<<< HEAD
 <title>Control de Carreras - Optimizado</title>
+=======
+<title>Control Profesional - Compacto</title>
+>>>>>>> 0401f21c493654a8eae81f4ea0f4805975f9f0d7
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="container">
   <header>
+<<<<<<< HEAD
     <h1>🏆 Control de Carreras</h1>
     <p>Análisis inteligente en una pantalla</p>
   </header>
@@ -64,21 +69,58 @@
       <!-- OCR - Subir Foto -->
       <div class="card compact ocr-section">
         <h2>📸 Subir Foto del Ticket (OCR)</h2>
+=======
+    <h1>🏆 Control Carreras</h1>
+    <p>Análisis + OCR + EV</p>
+  </header>
+
+  <!-- TABS -->
+  <nav class="tabbar">
+    <button class="tab-btn active" data-tab="ingresar">
+      <span class="tab-icon">📸</span>
+      <span>Tickets</span>
+    </button>
+    <button class="tab-btn" data-tab="ev">
+      <span class="tab-icon">💵</span>
+      <span>EV Real</span>
+    </button>
+    <button class="tab-btn" data-tab="analisis">
+      <span class="tab-icon"></span>
+      <span>Análisis</span>
+    </button>
+    <button class="tab-btn" data-tab="regimen">
+      <span class="tab-icon">🌡️</span>
+      <span>Régimen</span>
+    </button>
+  </nav>
+
+  <!-- CONTENIDO -->
+  <div class="tab-panels">
+    
+    <!-- TAB 1: INGRESAR (OCR + Manual) -->
+    <div class="tab-panel active" data-tab="ingresar">
+      <div class="card compact">
+        <h2>📸 Subir Ticket</h2>
+>>>>>>> 0401f21c493654a8eae81f4ea0f4805975f9f0d7
         <div class="ocr-buttons">
           <label class="btn-ocr btn-camera">
-            📷 Tomar Foto
+            📷 Cámara
             <input type="file" id="fileCamera" accept="image/*" capture="environment" style="display:none;">
           </label>
           <label class="btn-ocr btn-gallery">
+<<<<<<< HEAD
             ️ Galería
+=======
+            🖼️ Galería
+>>>>>>> 0401f21c493654a8eae81f4ea0f4805975f9f0d7
             <input type="file" id="fileGallery" accept="image/*" style="display:none;">
           </label>
         </div>
         <div id="ocrStatus" class="ocr-status"></div>
-        <div id="ocrImagePreview" class="ocr-image-preview"></div>
         <div id="ocrResult" class="ocr-result"></div>
       </div>
 
+<<<<<<< HEAD
       <!-- Carga Masiva Manual -->
       <div class="card compact">
         <h2>⚡ Carga Masiva Manual</h2>
@@ -89,11 +131,21 @@
           <button class="btn-bulk-parse" id="btnParse">🔍 Previsualizar</button>
           <button class="btn-bulk-save" id="btnBulkSave">💾 Guardar</button>
           <button class="btn-bulk-clear" id="btnBulkClear">🗑️ Limpiar</button>
+=======
+      <div class="card compact">
+        <h2>⚡ Carga Manual</h2>
+        <textarea id="bulkInput" class="bulk-textarea" placeholder="0287  25/07/2026 15:07:30  5 - 2"></textarea>
+        <div class="bulk-actions">
+          <button class="btn-bulk-parse" id="btnParse">🔍</button>
+          <button class="btn-bulk-save" id="btnBulkSave">💾</button>
+          <button class="btn-bulk-clear" id="btnBulkClear">️</button>
+>>>>>>> 0401f21c493654a8eae81f4ea0f4805975f9f0d7
         </div>
         <div id="bulkPreview" class="bulk-preview"></div>
       </div>
     </div>
 
+<<<<<<< HEAD
     <!-- TAB 2: ANÁLISIS -->
     <div id="tab-analisis" class="tab-panel">
       <div class="card">
@@ -167,11 +219,62 @@
       </div>
     </div>
 
+=======
+      <div class="card compact">
+        <h2> Rápido</h2>
+        <form id="raceForm" class="compact-form">
+          <div class="form-row">
+            <input type="text" id="raceId" placeholder="Carrera" required>
+            <select id="winner" required>
+              <option value="">1ro</option>
+              <option value="1">1</option><option value="2">2</option>
+              <option value="3">3</option><option value="4">4</option>
+              <option value="5">5</option><option value="6">6</option>
+              <option value="7">7</option><option value="8">8</option>
+            </select>
+            <select id="secondPlace">
+              <option value="">2do</option>
+              <option value="1">1</option><option value="2">2</option>
+              <option value="3">3</option><option value="4">4</option>
+              <option value="5">5</option><option value="6">6</option>
+              <option value="7">7</option><option value="8">8</option>
+            </select>
+            <button type="submit" class="btn-save">💾</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- TAB 2: EV REAL -->
+    <div class="tab-panel" data-tab="ev">
+      <div id="evContainer" class="card">
+        <p>Calculando EV...</p>
+      </div>
+    </div>
+
+    <!-- TAB 3: ANÁLISIS -->
+    <div class="tab-panel" data-tab="analisis">
+      <div id="statsContainer" class="card">
+        <p>Analizando...</p>
+      </div>
+      <div class="card compact">
+        <h3>📜 Historial</h3>
+        <ul id="historyList" class="history-compact"></ul>
+      </div>
+    </div>
+
+    <!-- TAB 4: RÉGIMEN + COMBOS -->
+    <div class="tab-panel" data-tab="regimen">
+      <div id="regimeContainer" class="card"></div>
+      <div id="combosContainer" class="card"></div>
+    </div>
+
+>>>>>>> 0401f21c493654a8eae81f4ea0f4805975f9f0d7
   </div>
 </div>
 
-<!-- Tesseract.js para OCR -->
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.4/dist/tesseract.min.js"></script>
 <script type="module" src="app.js"></script>
+<script src="tabs.js"></script>
 </body>
 </html>
