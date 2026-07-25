@@ -27,6 +27,7 @@ const alertasEl = document.getElementById("alertas");
 const regimenContainer = document.getElementById("regimenContainer");
 const combosContainer = document.getElementById("combosContainer");
 const desglosePerrosEl = document.getElementById("desglosePerros");
+const proximaCarreraEl = document.getElementById("proximaCarrera");
 
 // Sistema de Tabs
 document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -107,7 +108,7 @@ async function processOCRImage(file) {
   reader.readAsDataURL(file);
 
   ocrStatus.className = "ocr-status show processing";
-  ocrStatus.innerHTML = `️ Inicializando OCR...<div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>`;
+  ocrStatus.innerHTML = `⚙️ Inicializando OCR...<div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>`;
 
   try {
     const result = await Tesseract.recognize(file, 'eng', {
@@ -148,7 +149,7 @@ async function processOCRImage(file) {
       html += `<div class="ocr-actions">
         <button class="btn-ocr-action btn-ocr-save" id="btnOcrSave">💾 Guardar ${valid.length}</button>
         <button class="btn-ocr-action btn-ocr-bulk" id="btnOcrBulk">📋 Pasar a Carga Masiva</button>
-        <button class="btn-ocr-action btn-ocr-clear" id="btnOcrClear">️</button>
+        <button class="btn-ocr-action btn-ocr-clear" id="btnOcrClear">🗑️</button>
       </div>`;
     }
 
@@ -189,7 +190,7 @@ async function saveOCRToFirebase() {
     clearOCR();
     loadAndAnalyzeRaces();
   } catch (error) {
-    alert("❌ Error: " + error.message);
+    alert(" Error: " + error.message);
   }
 }
 
@@ -321,6 +322,109 @@ document.getElementById("btnBulkClear").addEventListener("click", () => {
   parsedRaces = [];
 });
 
+// ============ 🆕 PREDICCIÓN INMEDIATA PARA PRÓXIMA CARRERA ============
+function generarPrediccionInmediata(races, total, counts, lastSeen, lastWinner) {
+  if (total < 3 || !lastWinner) {
+    return {
+      dog: null,
+      pale: null,
+      confidence: "Baja",
+      reason: "Necesitas al menos 3 carreras para predecir"
+    };
+  }
+
+  // 1. Markov: qué suele venir después del último ganador
+  let markovMatrix = {};
+  for (let i = 1; i <= 8; i++) markovMatrix[i] = {1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0};
+  for (let i = 0; i < races.length - 1; i++) {
+    const c = races[i].winner, n = races[i+1].winner;
+    if (markovMatrix[c] && markovMatrix[c][n] !== undefined) markovMatrix[c][n]++;
+  }
+  
+  let markovTop = null;
+  if (markovMatrix[lastWinner]) {
+    const row = markovMatrix[lastWinner];
+    const tot = Object.values(row).reduce((a,b) => a+b, 0);
+    if (tot > 0) {
+      const sorted = Object.entries(row).map(([d, c]) => ({ dog: Number(d), prob: (c/tot)*100 }))
+        .sort((a,b) => b.prob - a.prob);
+      markovTop = sorted[0];
+    }
+  }
+
+  // 2. Perro con mayor sequía (deuda estadística)
+  let maxDrought = 0;
+  let droughtDog = null;
+  for (let i = 1; i <= 8; i++) {
+    const drought = lastSeen[i] === 999 ? total : lastSeen[i];
+    if (drought > maxDrought && i !== lastWinner) {
+      maxDrought = drought;
+      droughtDog = i;
+    }
+  }
+
+  // 3. Frecuencia reciente (últimas 5)
+  let recentCounts = {1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0};
+  races.slice(0, Math.min(5, total)).forEach(r => recentCounts[r.winner]++);
+  let leastRecent = null;
+  let minRecent = 999;
+  for (let i = 1; i <= 8; i++) {
+    if (recentCounts[i] < minRecent && i !== lastWinner) {
+      minRecent = recentCounts[i];
+      leastRecent = i;
+    }
+  }
+
+  // 4. Score combinado
+  let scores = {};
+  for (let i = 1; i <= 8; i++) {
+    if (i === lastWinner) continue;
+    scores[i] = 0;
+    
+    // Markov (40%)
+    if (markovTop && markovTop.dog === i) scores[i] += 40;
+    
+    // Sequía (30%)
+    const drought = lastSeen[i] === 999 ? total : lastSeen[i];
+    scores[i] += Math.min(drought * 3, 30);
+    
+    // No reciente (30%)
+    if (recentCounts[i] === 0) scores[i] += 30;
+  }
+
+  let bestDog = null;
+  let bestScore = 0;
+  for (let i = 1; i <= 8; i++) {
+    if (scores[i] > bestScore) {
+      bestScore = scores[i];
+      bestDog = i;
+    }
+  }
+
+  // Palé: segundo mejor score
+  let secondBest = null;
+  let secondScore = 0;
+  for (let i = 1; i <= 8; i++) {
+    if (i !== bestDog && i !== lastWinner && scores[i] > secondScore) {
+      secondScore = scores[i];
+      secondBest = i;
+    }
+  }
+
+  // Confianza
+  let confidence = "Baja";
+  if (bestScore >= 60) confidence = "Alta";
+  else if (bestScore >= 40) confidence = "Media";
+
+  return {
+    dog: bestDog,
+    pale: secondBest,
+    confidence,
+    score: bestScore,
+    reason: `Markov: ${markovTop ? markovTop.dog : '-'}, Sequía: ${droughtDog}, No reciente: ${leastRecent}`
+  };
+}
+
 // ============ MOTOR DE ANÁLISIS ============
 async function loadAndAnalyzeRaces() {
   try {
@@ -332,6 +436,7 @@ async function loadAndAnalyzeRaces() {
     const total = races.length;
     
     if (total === 0) {
+      proximaCarreraEl.innerHTML = `<div class="proxima-box"><p>Registra al menos 3 carreras para obtener predicción</p></div>`;
       totalCarrerasEl.textContent = "0";
       ultimoGanadorEl.textContent = "#-";
       secuenciaEl.textContent = "-";
@@ -363,6 +468,48 @@ async function loadAndAnalyzeRaces() {
     totalCarrerasEl.textContent = total;
     ultimoGanadorEl.textContent = `#${lastWinner || '-'}`;
     secuenciaEl.textContent = sequence.map(s => `#${s}`).join(' → ');
+
+    // 🆕 PREDICCIÓN INMEDIATA
+    const prediccion = generarPrediccionInmediata(races, total, counts, lastSeen, lastWinner);
+    
+    let htmlProxima = `
+      <div class="proxima-title">🎯 PRÓXIMA CARRERA - QUÉ JUGAR AHORA</div>
+    `;
+
+    if (prediccion.dog) {
+      htmlProxima += `
+        <div class="proxima-main">
+          <div class="proxima-label">🥇 GANADOR RECOMENDADO</div>
+          <div class="proxima-dog">Perro #${prediccion.dog}</div>
+        </div>
+      `;
+
+      if (prediccion.pale) {
+        htmlProxima += `
+          <div class="proxima-pale">
+            <div class="proxima-pale-item">
+              <div class="proxima-pale-dog">#${prediccion.dog}</div>
+              <div class="proxima-pale-label">1ro</div>
+            </div>
+            <div style="font-size:1.5rem;">→</div>
+            <div class="proxima-pale-item">
+              <div class="proxima-pale-dog">#${prediccion.pale}</div>
+              <div class="proxima-pale-label">2do</div>
+            </div>
+          </div>
+        `;
+      }
+
+      htmlProxima += `
+        <div class="proxima-confidence">
+          Confianza: ${prediccion.confidence} | Score: ${prediccion.score}/100
+        </div>
+      `;
+    } else {
+      htmlProxima += `<p>${prediccion.reason}</p>`;
+    }
+
+    proximaCarreraEl.innerHTML = htmlProxima;
 
     // Recomendaciones
     let recommendations = [];
@@ -405,7 +552,7 @@ async function loadAndAnalyzeRaces() {
         const sorted = Object.entries(row).map(([d, c]) => ({ dog: Number(d), prob: (c/tot)*100 }))
           .sort((a,b) => b.prob - a.prob).slice(0, 3);
         sorted.forEach((p, i) => {
-          htmlMarkov += `<div class="badge-markov">${['🥇','🥈',''][i]} #${p.dog} <span class="pct">${p.prob.toFixed(1)}%</span></div>`;
+          htmlMarkov += `<div class="badge-markov">${['🥇','🥈','🥉'][i]} #${p.dog} <span class="pct">${p.prob.toFixed(1)}%</span></div>`;
         });
       }
     }
@@ -513,7 +660,7 @@ async function loadAndAnalyzeRaces() {
         </div>
         <div class="combo-detail">Ganador: Perro #${top3[0].dog}</div>
         <div class="combo-dogs"><span class="combo-dog-badge">#${top3[0].dog}</span></div>
-        <div class="combo-stake">💰 3-5% del bankroll</div>
+        <div class="combo-stake"> 3-5% del bankroll</div>
       </div>
     `;
 
