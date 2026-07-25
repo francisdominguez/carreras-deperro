@@ -9,31 +9,45 @@
 <body>
     <div class="container">
         <header>
-            <h1>Registro de Carreras - 8 Perros</h1>
-            <p>Captura rápida y análisis de secuencias</p>
+            <h1>Control de Carreras</h1>
+            <p>Registro y análisis inteligente (Ganador y Palé)</p>
         </header>
 
-        <!-- Formulario de Registro -->
         <section class="card">
             <h2>Registrar Nueva Carrera</h2>
             <form id="raceForm">
                 <div class="input-group">
-                    <label for="raceId">ID o Número de Carrera:</label>
-                    <input type="text" id="raceId" required placeholder="Ej. 0353">
+                    <label for="raceId">Número de Carrera:</label>
+                    <input type="text" id="raceId" required placeholder="Ej: 101">
                 </div>
                 
                 <div class="input-group">
-                    <label for="winner">Perro Ganador (1 al 8):</label>
+                    <label for="winner">Primer Lugar (Ganador):</label>
                     <select id="winner" required>
-                        <option value="">Selecciona el ganador</option>
-                        <option value="1">Perro 1</option>
-                        <option value="2">Perro 2</option>
-                        <option value="3">Perro 3</option>
-                        <option value="4">Perro 4</option>
-                        <option value="5">Perro 5</option>
-                        <option value="6">Perro 6</option>
-                        <option value="7">Perro 7</option>
-                        <option value="8">Perro 8</option>
+                        <option value="">Selecciona perro (1-8)</option>
+                        <option value="1">Perro #1</option>
+                        <option value="2">Perro #2</option>
+                        <option value="3">Perro #3</option>
+                        <option value="4">Perro #4</option>
+                        <option value="5">Perro #5</option>
+                        <option value="6">Perro #6</option>
+                        <option value="7">Perro #7</option>
+                        <option value="8">Perro #8</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label for="secondPlace">Segundo Lugar (Para Palé - Opcional):</label>
+                    <select id="secondPlace">
+                        <option value="">Ninguno</option>
+                        <option value="1">Perro #1</option>
+                        <option value="2">Perro #2</option>
+                        <option value="3">Perro #3</option>
+                        <option value="4">Perro #4</option>
+                        <option value="5">Perro #5</option>
+                        <option value="6">Perro #6</option>
+                        <option value="7">Perro #7</option>
+                        <option value="8">Perro #8</option>
                     </select>
                 </div>
 
@@ -41,17 +55,21 @@
             </form>
         </section>
 
-        <!-- Panel de Resultados y Estadísticas -->
         <section class="card">
-            <h2>Estadísticas y Últimos Ganadores</h2>
+            <h2>Panel de Estadísticas y Recomendaciones</h2>
             <div id="statsContainer">
-                <p>Cargando datos...</p>
+                <p>Cargando datos y analizando patrones...</p>
             </div>
-            <ul id="historyList"></ul>
+        </section>
+
+        <section class="card">
+            <h2>Historial Reciente</h2>
+            <ul id="historyList">
+                <li>Cargando historial...</li>
+            </ul>
         </section>
     </div>
 
-    <!-- Firebase SDK (Versión modular por CDN) -->
     <script type="module" src="app.js"></script>
 </body>
 </html>
