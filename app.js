@@ -15,22 +15,82 @@ const db = getFirestore(app);
 const raceForm = document.getElementById("raceForm");
 const historyList = document.getElementById("historyList");
 const statsContainer = document.getElementById("statsContainer");
-const regimeContainer = document.getElementById("regimeContainer");
-const combosContainer = document.getElementById("combosContainer");
 
 let cachedRaces = [];
-let ocrParsedRaces = []; // Carreras detectadas por OCR
+let ocrParsedRaces = [];
+
+// ============ 🆕 PARSER ESPECIALIZADO FORMATO RAZA ============
+// Formato real del ticket: "0287  25/07/2026 15:07:30  5 - 2"
+function parseRazaFormat(text) {
+  const results = [];
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+
+  for (const line of lines) {
+    // Patrón Raza: 4 dígitos al inicio, luego fecha/hora, luego "X - Y" al final
+    // Ejemplo: "0287  25/07/2026 15:07:30  5 - 2"
+    const razaMatch = line.match(/^(\d{4})\s+\d{2}\/\d{2}\/\d{4}\s+\d{2}:\d{2}:\d{2}\s+(\d)\s*-\s*(\d)/);
+    
+    if (razaMatch) {
+      const raceNum = razaMatch[1];
+      const winner = parseInt(razaMatch[2]);
+      const second = parseInt(razaMatch[3]);
+
+      if (winner >= 1 && winner <= 8 && second >= 1 && second <= 8 && winner !== second) {
+        results.push({
+          raw: line,
+          valid: true,
+          raceId: `C${raceNum}`,
+          winner,
+          secondPlace: second,
+          format: 'raza'
+        });
+        continue;
+      }
+    }
+
+    // Fallback: parser genérico para otros formatos
+    const numbers = line.match(/\d+/g);
+    if (numbers && numbers.length >= 3) {
+      // Buscar combinación válida al final de la línea (los últimos 2 números son 1ro y 2do)
+      const lastNum = parseInt(numbers[numbers.length - 1]);
+      const secondLast = parseInt(numbers[numbers.length - 2]);
+      const firstNum = numbers[0];
+
+      if (lastNum >= 1 && lastNum <= 8 && secondLast >= 1 && secondLast <= 8 && lastNum !== secondLast) {
+        results.push({
+          raw: line,
+          valid: true,
+          raceId: `C${firstNum}`,
+          winner: secondLast,
+          secondPlace: lastNum,
+          format: 'generic'
+        });
+        continue;
+      }
+    }
+
+    // Si no se pudo parsear
+    if (line.length > 3 && !line.includes('RESULTADOS') && !line.includes('Raza') && !line.includes('Fecha')) {
+      results.push({ raw: line, valid: false, error: "Formato no reconocido" });
+    }
+  }
+
+  return results;
+}
+
+// Parser para carga masiva manual (mantiene compatibilidad)
+function parseBulkInput(text) {
+  return parseRazaFormat(text);
+}
 
 // ============ 🆕 SISTEMA OCR - SUBIR FOTO ============
 const ocrStatus = document.getElementById("ocrStatus");
 const ocrImagePreview = document.getElementById("ocrImagePreview");
 const ocrResult = document.getElementById("ocrResult");
 
-// Procesar imagen (desde cámara o galería)
 async function processOCRImage(file) {
   if (!file) return;
 
-  // Mostrar preview de la imagen
   const reader = new FileReader();
   reader.onload = (e) => {
     ocrImagePreview.innerHTML = `<img src="${e.target.result}" alt="Ticket">`;
@@ -38,13 +98,11 @@ async function processOCRImage(file) {
   };
   reader.readAsDataURL(file);
 
-  // Mostrar estado de procesamiento
   ocrStatus.className = "ocr-status show processing";
-  ocrStatus.innerHTML = `⚙️ Inicializando motor OCR...<br><small>(La primera vez tarda ~15 segundos)</small>
+  ocrStatus.innerHTML = `️ Inicializando motor OCR...
     <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>`;
 
   try {
-    // Ejecutar OCR con Tesseract.js
     const result = await Tesseract.recognize(file, 'eng', {
       logger: m => {
         if (m.status === 'recognizing text') {
@@ -67,16 +125,14 @@ async function processOCRImage(file) {
     ocrStatus.className = "ocr-status show success";
     ocrStatus.innerHTML = `✅ Texto extraído correctamente`;
 
-    // Mostrar texto extraído
-    let html = `<div><strong>📝 Texto detectado:</strong></div>`;
+    let html = `<div><strong> Texto detectado:</strong></div>`;
     html += `<div class="ocr-extracted">${extractedText || '(vacío)'}</div>`;
 
-    // Parsear el texto
-    ocrParsedRaces = parseOCRText(extractedText);
+    ocrParsedRaces = parseRazaFormat(extractedText);
     const valid = ocrParsedRaces.filter(r => r.valid);
     const invalid = ocrParsedRaces.filter(r => !r.valid);
 
-    html += `<div style="margin-top:10px;"><strong>📊 Resultados:</strong> ${valid.length} válidas | ${invalid.length} con error</div>`;
+    html += `<div style="margin-top:10px;"><strong>📊 Resultados:</strong> ${valid.length} carreras detectadas | ${invalid.length} líneas ignoradas</div>`;
 
     if (ocrParsedRaces.length > 0) {
       html += `<table class="ocr-table"><thead><tr><th>Carrera</th><th>1ro</th><th>2do</th><th>Estado</th></tr></thead><tbody>`;
@@ -84,7 +140,7 @@ async function processOCRImage(file) {
         if (r.valid) {
           html += `<tr class="valid"><td>${r.raceId}</td><td>#${r.winner}</td><td>#${r.secondPlace}</td><td class="status-ok">✓</td></tr>`;
         } else {
-          html += `<tr class="invalid"><td colspan="3" style="font-size:0.75rem;">${r.error || r.raw}</td><td class="status-err">✗</td></tr>`;
+          html += `<tr class="invalid"><td colspan="3" style="font-size:0.75rem;">${r.error || r.raw}</td><td class="status-err"></td></tr>`;
         }
       });
       html += `</tbody></table>`;
@@ -92,18 +148,17 @@ async function processOCRImage(file) {
 
     if (valid.length > 0) {
       html += `<div class="ocr-actions">
-        <button class="btn-ocr-action btn-ocr-save" id="btnOcrSave">💾 Guardar ${valid.length} en Firebase</button>
-        <button class="btn-ocr-action btn-ocr-bulk" id="btnOcrBulk">📋 Pasar a Carga Masiva</button>
+        <button class="btn-ocr-action btn-ocr-save" id="btnOcrSave"> Guardar ${valid.length} en Firebase</button>
+        <button class="btn-ocr-action btn-ocr-bulk" id="btnOcrBulk"> Pasar a Carga Masiva</button>
         <button class="btn-ocr-action btn-ocr-clear" id="btnOcrClear">🗑️ Limpiar</button>
       </div>`;
     } else {
       html += `<div style="color:#fca5a5;margin-top:10px;">
-        ⚠️ No se detectaron datos válidos. Consejos:
+        ⚠️ No se detectaron carreras. Consejos:
         <ul style="margin-top:6px;padding-left:20px;font-size:0.8rem;">
           <li>Toma la foto con buena iluminación</li>
           <li>Asegúrate que el ticket esté plano</li>
           <li>Los números deben verse claros</li>
-          <li>Usa "Pasar a Carga Masiva" para editar manualmente</li>
         </ul>
       </div>`;
       html += `<div class="ocr-actions">
@@ -114,11 +169,8 @@ async function processOCRImage(file) {
 
     ocrResult.className = "ocr-result show success";
     ocrResult.innerHTML = html;
-
-    // Guardar texto extraído para pasar a carga masiva
     ocrResult.dataset.extractedText = extractedText;
 
-    // Eventos de botones
     const btnSave = document.getElementById("btnOcrSave");
     if (btnSave) btnSave.addEventListener("click", saveOCRToFirebase);
     
@@ -135,47 +187,6 @@ async function processOCRImage(file) {
   }
 }
 
-// Parser especializado para OCR
-function parseOCRText(text) {
-  const results = [];
-  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-
-  for (const line of lines) {
-    const numbers = line.match(/\d+/g);
-    if (!numbers || numbers.length < 3) continue;
-
-    // Buscar combinación válida: carrera + 2 perros (1-8)
-    let found = false;
-    for (let i = 0; i <= numbers.length - 3 && !found; i++) {
-      const raceNum = numbers[i];
-      const w = parseInt(numbers[i+1]);
-      const s = parseInt(numbers[i+2]);
-      
-      if (w >= 1 && w <= 8 && s >= 1 && s <= 8 && w !== s) {
-        results.push({
-          raw: line,
-          valid: true,
-          raceId: `C${raceNum}`,
-          winner: w,
-          secondPlace: s
-        });
-        found = true;
-      }
-    }
-  }
-
-  if (results.length === 0 && text.trim().length > 0) {
-    results.push({
-      raw: text.substring(0, 80),
-      valid: false,
-      error: "No se detectaron 3 números válidos"
-    });
-  }
-
-  return results;
-}
-
-// Guardar OCR en Firebase
 async function saveOCRToFirebase() {
   const valid = ocrParsedRaces.filter(r => r.valid);
   if (valid.length === 0) {
@@ -209,12 +220,10 @@ async function saveOCRToFirebase() {
   }
 }
 
-// Pasar texto OCR a carga masiva manual
 function passOCRToBulk() {
   const extractedText = ocrResult.dataset.extractedText || "";
   const bulkInput = document.getElementById("bulkInput");
   
-  // Convertir el texto OCR a formato limpio para carga masiva
   const valid = ocrParsedRaces.filter(r => r.valid);
   let textToBulk = "";
   
@@ -231,7 +240,6 @@ function passOCRToBulk() {
   }
 }
 
-// Limpiar OCR
 function clearOCR() {
   ocrImagePreview.innerHTML = "";
   ocrImagePreview.classList.remove("show");
@@ -244,7 +252,6 @@ function clearOCR() {
   document.getElementById("fileGallery").value = "";
 }
 
-// Event listeners para subir foto
 document.getElementById("fileCamera").addEventListener("change", (e) => {
   const file = e.target.files[0];
   if (file) processOCRImage(file);
@@ -278,37 +285,6 @@ raceForm.addEventListener("submit", async (e) => {
     alert("Error al guardar.");
   }
 });
-
-// ============ PARSER TOLERANTE ============
-function parseBulkInput(text) {
-  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-  const results = [];
-  for (const line of lines) {
-    const numbers = line.match(/\d+/g);
-    if (!numbers || numbers.length < 3) {
-      results.push({ raw: line, valid: false, error: "Faltan números" });
-      continue;
-    }
-    let raceNum = numbers[0];
-    let winner = parseInt(numbers[1]);
-    let second = parseInt(numbers[2]);
-
-    if (winner < 1 || winner > 8) {
-      results.push({ raw: line, valid: false, error: `1ro inválido: ${winner}` });
-      continue;
-    }
-    if (second < 1 || second > 8) {
-      results.push({ raw: line, valid: false, error: `2do inválido: ${second}` });
-      continue;
-    }
-    if (winner === second) {
-      results.push({ raw: line, valid: false, error: "1ro y 2do iguales" });
-      continue;
-    }
-    results.push({ raw: line, valid: true, raceId: `C${raceNum}`, winner, secondPlace: second });
-  }
-  return results;
-}
 
 // ============ CARGA MASIVA ============
 const bulkInput = document.getElementById("bulkInput");
@@ -390,8 +366,6 @@ document.getElementById("btnBulkClear").addEventListener("click", () => {
 async function loadAndAnalyzeRaces() {
   statsContainer.innerHTML = "<p>⚙️ Procesando...</p>";
   historyList.innerHTML = "<li>Cargando...</li>";
-  regimeContainer.innerHTML = "<p>Analizando régimen...</p>";
-  combosContainer.innerHTML = "<p>Generando combinaciones...</p>";
 
   try {
     const q = query(collection(db, "races"), orderBy("timestamp", "desc"), limit(500));
@@ -405,8 +379,6 @@ async function loadAndAnalyzeRaces() {
     if (total === 0) {
       statsContainer.innerHTML = "<p>Registra carreras para activar.</p>";
       historyList.innerHTML = "<li>Sin registros.</li>";
-      regimeContainer.innerHTML = "<p>Sin datos.</p>";
-      combosContainer.innerHTML = "<p>Sin datos.</p>";
       return;
     }
 
@@ -429,15 +401,10 @@ async function loadAndAnalyzeRaces() {
     const anomalies = detectAnomalies(races, total, A2, A10);
     const evAnalysis = analyzeEV(races);
 
-    const regime = detectDayRegime(races, total, A1, A2, A11);
-    const combos = generateMultipleCombos(races, total, A1, A2, A3, A4, A7, A11, finalRecommendations);
-
     renderAll({
       total, races, A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11, A12,
       finalRecommendations, eliminationList, stakingPlan, anomalies, evAnalysis
     });
-    renderRegime(regime);
-    renderCombos(combos, races[0]?.bankroll || 100);
 
     let htmlHistory = "";
     races.slice(0, 15).forEach(r => {
@@ -450,181 +417,6 @@ async function loadAndAnalyzeRaces() {
     console.error("Error: ", error);
     statsContainer.innerHTML = "<p>Error al procesar.</p>";
   }
-}
-
-// ============ RÉGIMEN DEL DÍA ============
-function detectDayRegime(races, total, A1, A2, A11) {
-  const window = Math.min(15, total);
-  const recent = races.slice(0, window);
-  const recentFreq = {1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0};
-  recent.forEach(r => recentFreq[r.winner]++);
-
-  const activeDogs = Object.entries(recentFreq)
-    .filter(([_, count]) => count > 0)
-    .map(([dog, count]) => ({ dog: Number(dog), count }))
-    .sort((a,b) => b.count - a.count);
-
-  const coldDogs = [];
-  for (let i = 1; i <= 8; i++) {
-    if (recentFreq[i] === 0 && A2[i].drought >= 8) coldDogs.push(i);
-  }
-
-  let regimeType, regimeDesc;
-  const uniqueWinners = activeDogs.length;
-  if (uniqueWinners <= 3) {
-    regimeType = "CONCENTRADO 🔥";
-    regimeDesc = `Solo ${uniqueWinners} perros ganan hoy. Patrón cerrado.`;
-  } else if (uniqueWinners <= 5) {
-    regimeType = "EQUILIBRADO ⚖️";
-    regimeDesc = `${uniqueWinners} perros activos. Patrón normal.`;
-  } else {
-    regimeType = "DISTRIBUIDO 🎲";
-    regimeDesc = `${uniqueWinners} perros ganando. Usa coberturas.`;
-  }
-
-  let parRecent = 0, imparRecent = 0;
-  recent.forEach(r => { if (r.winner % 2 === 0) parRecent++; else imparRecent++; });
-  const sesgo = parRecent > imparRecent ? "PAR" : "IMPAR";
-
-  let bajoRecent = 0, altoRecent = 0;
-  recent.forEach(r => { if (r.winner <= 4) bajoRecent++; else altoRecent++; });
-  const sesgoRango = bajoRecent > altoRecent ? "BAJO (1-4)" : "ALTO (5-8)";
-
-  return { type: regimeType, desc: regimeDesc, activeDogs, coldDogs, sesgo, sesgoRango, windowSize: window };
-}
-
-// ============ COMBINACIONES MÚLTIPLES ============
-function generateMultipleCombos(races, total, A1, A2, A3, A4, A7, A11, recs) {
-  const combos = [];
-  const top3 = recs.slice(0, 3);
-  const top5 = recs.slice(0, 5);
-
-  combos.push({
-    type: "main", name: "🎯 Apuesta Principal",
-    desc: `Ganador: Perro #${top3[0].dog} (Score: ${top3[0].score})`,
-    dogs: [top3[0].dog], strategy: "Apuesta fuerte al mejor score.",
-    stake: "3-5% del bankroll", confidence: top3[0].confidence
-  });
-
-  if (top3[1]) {
-    const d1 = top3[0].dog, d2 = top3[1].dog;
-    combos.push({
-      type: "box", name: "🔗 Palé Box (2 perros)",
-      desc: `Cubre: #${d1}→#${d2} y #${d2}→#${d1}`,
-      dogs: [d1, d2], strategy: "Doble cobertura en ambos órdenes.",
-      stake: "2-3% del bankroll", confidence: "Alta ⭐⭐⭐"
-    });
-  }
-
-  if (top3[1] && top3[2]) {
-    const fixed = top3[0].dog;
-    const others = [top3[1].dog, top3[2].dog];
-    combos.push({
-      type: "key", name: "🔑 Trifecta Key",
-      desc: `Fijo #${fixed} 1ro + ${others.map(d=>'#'+d).join(' y ')} en 2do/3ro`,
-      dogs: [fixed, ...others], strategy: "Fijas al mejor + combinas los otros 2.",
-      stake: "2% del bankroll", confidence: "Media-Alta ⭐⭐⭐"
-    });
-  }
-
-  if (top5[3]) {
-    const wheelDogs = top5.slice(0, 4).map(r => r.dog);
-    combos.push({
-      type: "wheel", name: "🔄 Trifecta Wheel (4 perros)",
-      desc: `Cualquier combo de ${wheelDogs.map(d=>'#'+d).join(', ')}`,
-      dogs: wheelDogs, strategy: "Cubre todas las combinaciones posibles.",
-      stake: "4-5% del bankroll", confidence: "Muy Alta ⭐⭐⭐⭐"
-    });
-  }
-
-  combos.push({
-    type: "cover", name: "💰 Cobertura Ganador (5 perros)",
-    desc: `Top 5: ${top5.map(r=>'#'+r.dog).join(', ')}`,
-    dogs: top5.map(r => r.dog), strategy: "Distribuye entre los 5 mejores.",
-    stake: "5% (1% c/u)", confidence: "Alta ⭐⭐⭐"
-  });
-
-  if (A4.prediction && A4.prediction.length > 0) {
-    const markovTop = A4.prediction[0].dog;
-    if (markovTop === top3[0].dog && top3[1]) {
-      combos.push({
-        type: "main", name: "⭐⭐ Palé Confirmado (Markov+Score)",
-        desc: `#${top3[0].dog}→#${top3[1].dog} - Doble confirmación`,
-        dogs: [top3[0].dog, top3[1].dog], strategy: "Score y Markov coinciden.",
-        stake: "4% del bankroll", confidence: "Muy Alta ⭐⭐⭐⭐"
-      });
-    }
-  }
-
-  const coldRebound = [];
-  for (let i = 1; i <= 8; i++) {
-    if (A2[i].drought >= 12 && parseFloat(A3[i].debt) > 5) coldRebound.push(i);
-  }
-  if (coldRebound.length > 0) {
-    combos.push({
-      type: "cover", name: "🧊 Rebote de Fríos",
-      desc: `Perros en deuda: ${coldRebound.map(d=>'#'+d).join(', ')}`,
-      dogs: coldRebound, strategy: "Perros que 'deben' ganar.",
-      stake: "1-2% del bankroll", confidence: "Media ⭐⭐"
-    });
-  }
-
-  return combos;
-}
-
-function renderRegime(regime) {
-  let html = `
-    <div class="regime-box">
-      <div class="regime-title">🌡️ ${regime.type}</div>
-      <div class="regime-desc">${regime.desc}</div>
-      <div style="font-size:0.8rem; color:#94a3b8; margin-bottom:8px;">
-        📊 Últimas <strong>${regime.windowSize}</strong> carreras |
-        Sesgo: <strong style="color:#fbbf24;">${regime.sesgo}</strong> |
-        Rango: <strong style="color:#fbbf24;">${regime.sesgoRango}</strong>
-      </div>
-      <div style="font-size:0.8rem; color:#cbd5e1; margin-bottom:4px;"><strong>🔥 Activos HOY:</strong></div>
-      <div class="regime-dogs">
-        ${regime.activeDogs.map(d => `<span class="regime-dog">#${d.dog} (${d.count}x)</span>`).join('')}
-      </div>
-      ${regime.coldDogs.length > 0 ? `
-        <div style="font-size:0.8rem; color:#cbd5e1; margin-top:10px; margin-bottom:4px;"><strong>🧊 Fríos (posible rebote):</strong></div>
-        <div class="regime-dogs">
-          ${regime.coldDogs.map(d => `<span class="regime-dog cold">#${d}</span>`).join('')}
-        </div>
-      ` : ''}
-    </div>
-  `;
-  regimeContainer.innerHTML = html;
-}
-
-function renderCombos(combos, bankroll) {
-  let html = `<div style="background:#0f172a; padding:8px; border-radius:6px; font-size:0.8rem; color:#94a3b8; margin-bottom:10px;">
-    💵 Bankroll: <strong style="color:#10b981;">$${bankroll}</strong> |
-    🎰 <strong style="color:#6ee7b7;">${combos.length} combinaciones</strong>
-  </div>`;
-
-  combos.forEach(c => {
-    html += `
-      <div class="combo-item ${c.type}">
-        <div class="combo-header">
-          <span class="combo-type">${c.name}</span>
-          <span class="combo-confidence">${c.confidence}</span>
-        </div>
-        <div class="combo-detail">${c.desc}</div>
-        <div class="combo-detail" style="font-size:0.78rem; color:#94a3b8;">💡 ${c.strategy}</div>
-        <div class="combo-dogs">
-          ${c.dogs.map(d => `<span class="combo-dog-badge">#${d}</span>`).join('')}
-        </div>
-        <div class="combo-stake">💰 Sugerencia: <strong>${c.stake}</strong></div>
-      </div>
-    `;
-  });
-
-  html += `<div style="background:rgba(251, 191, 36, 0.1); border:1px solid #fbbf24; border-radius:8px; padding:10px; margin-top:10px; font-size:0.8rem; color:#fbbf24;">
-    <strong>💡 Consejo:</strong> Elige 2-3 combinaciones. La <strong>Principal</strong> + <strong>Palé Box</strong> es la más rentable.
-  </div>`;
-
-  combosContainer.innerHTML = html;
 }
 
 // ============ 12 ALGORITMOS DE ANÁLISIS ============
@@ -651,7 +443,7 @@ function analyzeStreaks(races, total) {
     let s = "neutral";
     if (last5 >= 2) s = "hot 🔥";
     else if (last15 === 0 && lastSeen[i] >= 15) s = "cold 🧊";
-    else if (last10 === 0 && lastSeen[i] >= 10) s = "cool ❄️";
+    else if (last10 === 0 && lastSeen[i] >= 10) s = "cool ️";
     status[i] = { status: s, last5, last10, drought: lastSeen[i] === 999 ? total : lastSeen[i] };
   }
   return status;
@@ -934,7 +726,7 @@ function renderAll(data) {
   html += `</div>`;
 
   if (A4.prediction) {
-    html += `<h3 class="section-title">🔀 MARKOV 1° (después de #${A4.lastWinner})</h3><div class="flex-wrap">`;
+    html += `<h3 class="section-title"> MARKOV 1° (después de #${A4.lastWinner})</h3><div class="flex-wrap">`;
     A4.prediction.forEach((p, i) => {
       html += `<div class="badge-markov">${['🥇','🥈','🥉'][i]} #${p.dog} <span class="pct">${p.prob.toFixed(1)}%</span></div>`;
     });
