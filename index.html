@@ -10,21 +10,59 @@
 <div class="container">
   <header>
     <h1>🏆 Control Profesional de Carreras</h1>
-    <p>Motor de análisis con 12 algoritmos predictivos</p>
+    <p>Motor de análisis con 12 algoritmos + Generador de Combinaciones</p>
   </header>
 
-  <!-- REGISTRO DE CARRERA -->
+  <!-- DETECTOR DE RÉGIMEN DEL DÍA -->
+  <div class="card regime-card">
+    <h2>🌡️ Régimen del Día (Patrón Actual)</h2>
+    <div id="regimeContainer">
+      <p>Analizando patrón actual...</p>
+    </div>
+  </div>
+
+  <!-- GENERADOR DE COMBINACIONES MÚLTIPLES -->
+  <div class="card combos-card">
+    <h2>🎰 Generador de Combinaciones Múltiples</h2>
+    <p class="combos-desc">Con los mismos datos, el sistema genera múltiples estrategias de apuesta.</p>
+    <div id="combosContainer">
+      <p>Generando combinaciones...</p>
+    </div>
+  </div>
+
+  <!-- CARGA MASIVA MANUAL -->
+  <div class="card bulk-card">
+    <h2>⚡ Carga Masiva Rápida (tickets de banca)</h2>
+    <p class="bulk-desc">Pega los tickets impresos. Un ticket por línea. Cada vez que inyectes nuevos datos, las combinaciones se recalculan solas.</p>
+    <div class="bulk-format">
+      <strong>📋 Formatos:</strong>
+      <code>C125 3 5</code> · <code>C125, 3, 5</code> · <code>125-3-5</code>
+      <br><small>(Carrera - 1ro - 2do)</small>
+    </div>
+    <textarea id="bulkInput" class="bulk-textarea" placeholder="Ejemplo:
+C125 3 5
+C126 7 2
+C127 1 4"></textarea>
+    <div class="bulk-actions">
+      <button class="btn-bulk-parse" id="btnParse">🔍 Previsualizar</button>
+      <button class="btn-bulk-save" id="btnBulkSave">💾 Guardar Todas</button>
+      <button class="btn-bulk-clear" id="btnBulkClear">🗑️ Limpiar</button>
+    </div>
+    <div id="bulkPreview" class="bulk-preview"></div>
+  </div>
+
+  <!-- REGISTRO INDIVIDUAL -->
   <div class="card">
-    <h2>📝 Registrar Nueva Carrera</h2>
+    <h2>📝 Registro Individual (opcional)</h2>
     <form id="raceForm">
       <div class="input-group">
         <label for="raceId">Número de Carrera:</label>
         <input type="text" id="raceId" required placeholder="Ej: C-125">
       </div>
       <div class="input-group">
-        <label for="winner">🥇 Primer Lugar (Ganador):</label>
+        <label for="winner">🥇 Primer Lugar:</label>
         <select id="winner" required>
-          <option value="">Selecciona perro (1-8)</option>
+          <option value="">Selecciona (1-8)</option>
           <option value="1">Perro #1</option><option value="2">Perro #2</option>
           <option value="3">Perro #3</option><option value="4">Perro #4</option>
           <option value="5">Perro #5</option><option value="6">Perro #6</option>
@@ -41,88 +79,22 @@
           <option value="7">Perro #7</option><option value="8">Perro #8</option>
         </select>
       </div>
-      <div class="input-group">
-        <label for="thirdPlace">🥉 Tercer Lugar (Trifecta - Opcional):</label>
-        <select id="thirdPlace">
-          <option value="">Ninguno</option>
-          <option value="1">Perro #1</option><option value="2">Perro #2</option>
-          <option value="3">Perro #3</option><option value="4">Perro #4</option>
-          <option value="5">Perro #5</option><option value="6">Perro #6</option>
-          <option value="7">Perro #7</option><option value="8">Perro #8</option>
-        </select>
-      </div>
-      <div class="input-group">
-        <label for="odd">💰 Cuota pagada (opcional, para EV):</label>
-        <input type="number" id="odd" step="0.01" min="1" placeholder="Ej: 4.50">
-      </div>
-      <div class="input-group">
-        <label for="bankroll">💵 Bankroll actual ($):</label>
-        <input type="number" id="bankroll" step="0.01" min="0" placeholder="Ej: 100" value="100">
-      </div>
       <button type="submit" class="btn-primary">💾 Guardar Carrera</button>
     </form>
   </div>
 
-  <!-- CONSEJOS PROFESIONALES -->
+  <!-- CONSEJOS -->
   <div class="card tips-card">
-    <h2>💡 Consejos Profesionales (Lee antes de apostar)</h2>
+    <h2>💡 Consejos Profesionales</h2>
     <div class="tips-grid">
-      <div class="tip-item">
-        <span class="tip-icon">🎯</span>
-        <div>
-          <strong>Score Compuesto</strong>
-          <p>Tu brújula principal. Combina 6 factores en uno.</p>
-        </div>
-      </div>
-      <div class="tip-item">
-        <span class="tip-icon">🔀</span>
-        <div>
-          <strong>Confirma con Markov</strong>
-          <p>Si Score + Markov apuntan al mismo perro = apuesta fuerte.</p>
-        </div>
-      </div>
-      <div class="tip-item">
-        <span class="tip-icon">❌</span>
-        <div>
-          <strong>Lista de Eliminación</strong>
-          <p>Saber qué NO jugar vale tanto como saber qué jugar.</p>
-        </div>
-      </div>
-      <div class="tip-item">
-        <span class="tip-icon">💰</span>
-        <div>
-          <strong>Plan de Staking</strong>
-          <p>Nunca apuestes más del 5% de tu bankroll por carrera.</p>
-        </div>
-      </div>
-      <div class="tip-item">
-        <span class="tip-icon">📈</span>
-        <div>
-          <strong>Monitorea el EV</strong>
-          <p>Si el ROI es negativo, ajusta tu estrategia inmediatamente.</p>
-        </div>
-      </div>
-      <div class="tip-item">
-        <span class="tip-icon">⚠️</span>
-        <div>
-          <strong>Anomalías = Oportunidades</strong>
-          <p>Cuando el sistema alerta, hay un patrón inusual explotable.</p>
-        </div>
-      </div>
-      <div class="tip-item">
-        <span class="tip-icon">🔥</span>
-        <div>
-          <strong>Rachas Hot/Cold</strong>
-          <p>Perros "hot" pueden seguir ganando. "Cold" pueden rebotar.</p>
-        </div>
-      </div>
-      <div class="tip-item">
-        <span class="tip-icon">🔗</span>
-        <div>
-          <strong>Palés Direccionales</strong>
-          <p>#3→#5 es diferente a #5→#3. El orden importa.</p>
-        </div>
-      </div>
+      <div class="tip-item"><span class="tip-icon">🎯</span><div><strong>Score Compuesto</strong><p>Tu brújula principal.</p></div></div>
+      <div class="tip-item"><span class="tip-icon">🔀</span><div><strong>Confirma con Markov</strong><p>Score + Markov = apuesta fuerte.</p></div></div>
+      <div class="tip-item"><span class="tip-icon">🎰</span><div><strong>Múltiples Combinaciones</strong><p>No juegues solo 1, usa varias estrategias.</p></div></div>
+      <div class="tip-item"><span class="tip-icon">💰</span><div><strong>Plan de Staking</strong><p>Nunca más del 5% del bankroll.</p></div></div>
+      <div class="tip-item"><span class="tip-icon">🌡️</span><div><strong>Régimen del Día</strong><p>Cada día tiene su patrón, adáptate.</p></div></div>
+      <div class="tip-item"><span class="tip-icon">⚠️</span><div><strong>Anomalías = Oportunidades</strong><p>Patrones inusuales explotables.</p></div></div>
+      <div class="tip-item"><span class="tip-icon">🔥</span><div><strong>Rachas Hot/Cold</strong><p>Hot siguen, Cold pueden rebotar.</p></div></div>
+      <div class="tip-item"><span class="tip-icon">🔗</span><div><strong>Palés Direccionales</strong><p>#3→#5 ≠ #5→#3.</p></div></div>
     </div>
     <div class="tip-warning">
       <strong>⚠️ Regla de oro:</strong> La estadística ayuda, pero no garantiza. Gestiona tu bankroll con disciplina.
@@ -133,7 +105,7 @@
   <div class="card">
     <h2>🧠 Motor de Análisis Profesional</h2>
     <div id="statsContainer">
-      <p>Procesando 12 algoritmos predictivos...</p>
+      <p>Procesando algoritmos...</p>
     </div>
   </div>
 
@@ -141,7 +113,7 @@
   <div class="card">
     <h2>📜 Historial Reciente</h2>
     <ul id="historyList">
-      <li>Cargando historial...</li>
+      <li>Cargando...</li>
     </ul>
   </div>
 </div>
