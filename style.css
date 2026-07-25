@@ -38,6 +38,166 @@ header p { font-size: 0.85rem; color: #94a3b8; }
   border: 1px solid #334155; flex-wrap: wrap; gap: 4px;
 }
 
+/* ============ 🆕 OCR - SUBIR FOTO ============ */
+.ocr-card {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 2px solid #06b6d4;
+  position: relative;
+}
+.ocr-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, #06b6d4, #8b5cf6, #06b6d4);
+}
+.ocr-card h2 { color: #67e8f9; border-bottom-color: #06b6d4; }
+.ocr-desc { color: #94a3b8; font-size: 0.85rem; margin-bottom: 12px; }
+
+.ocr-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.btn-ocr {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  border: none;
+}
+.btn-camera {
+  background: linear-gradient(135deg, #06b6d4, #0891b2);
+  color: white;
+}
+.btn-camera:hover { background: linear-gradient(135deg, #0891b2, #0e7490); }
+.btn-gallery {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  color: white;
+}
+.btn-gallery:hover { background: linear-gradient(135deg, #7c3aed, #6d28d9); }
+
+.ocr-status {
+  background: #0f172a;
+  border: 1px dashed #334155;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 0.85rem;
+  margin-bottom: 10px;
+  min-height: 30px;
+  display: none;
+}
+.ocr-status.show { display: block; }
+.ocr-status.processing { border-color: #fbbf24; color: #fbbf24; }
+.ocr-status.success { border-color: #10b981; color: #86efac; }
+.ocr-status.error { border-color: #ef4444; color: #fca5a5; }
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: #1e293b;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #06b6d4, #8b5cf6);
+  width: 0%;
+  transition: width 0.3s;
+}
+
+.ocr-image-preview {
+  margin-bottom: 10px;
+  display: none;
+}
+.ocr-image-preview.show { display: block; }
+.ocr-image-preview img {
+  width: 100%;
+  max-height: 300px;
+  object-fit: contain;
+  border-radius: 8px;
+  border: 1px solid #334155;
+  background: #000;
+}
+
+.ocr-result {
+  background: #0f172a;
+  border: 1px dashed #334155;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 0.85rem;
+  display: none;
+}
+.ocr-result.show { display: block; }
+.ocr-result.success { border-color: #10b981; }
+.ocr-result.error { border-color: #ef4444; }
+
+.ocr-extracted {
+  background: rgba(6, 182, 212, 0.1);
+  border: 1px solid #06b6d4;
+  border-radius: 6px;
+  padding: 8px;
+  margin: 8px 0;
+  font-family: 'Courier New', monospace;
+  font-size: 0.8rem;
+  color: #67e8f9;
+  white-space: pre-wrap;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.ocr-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+  font-size: 0.8rem;
+}
+.ocr-table th {
+  background: #1e293b;
+  padding: 6px;
+  text-align: left;
+  color: #94a3b8;
+  border-bottom: 1px solid #334155;
+}
+.ocr-table td {
+  padding: 5px 6px;
+  border-bottom: 1px solid #1e293b;
+  color: #e2e8f0;
+}
+.ocr-table tr.valid td { color: #86efac; }
+.ocr-table tr.invalid td { color: #fca5a5; }
+.ocr-table .status-ok { color: #10b981; font-weight: bold; }
+.ocr-table .status-err { color: #ef4444; }
+
+.ocr-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.btn-ocr-action {
+  flex: 1;
+  min-width: 100px;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-ocr-save { background: #10b981; color: white; }
+.btn-ocr-save:hover { background: #059669; }
+.btn-ocr-bulk { background: #f59e0b; color: white; }
+.btn-ocr-bulk:hover { background: #d97706; }
+.btn-ocr-clear { background: #64748b; color: white; }
+.btn-ocr-clear:hover { background: #475569; }
+
 /* ============ RÉGIMEN DEL DÍA ============ */
 .regime-card {
   background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
@@ -56,36 +216,14 @@ header p { font-size: 0.85rem; color: #94a3b8; }
   padding: 12px;
   font-size: 0.9rem;
 }
-.regime-title {
-  font-size: 1rem;
-  font-weight: bold;
-  color: #f9a8d4;
-  margin-bottom: 8px;
-}
-.regime-desc {
-  color: #cbd5e1;
-  font-size: 0.85rem;
-  margin-bottom: 10px;
-  line-height: 1.5;
-}
-.regime-dogs {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-top: 8px;
-}
+.regime-title { font-size: 1rem; font-weight: bold; color: #f9a8d4; margin-bottom: 8px; }
+.regime-desc { color: #cbd5e1; font-size: 0.85rem; margin-bottom: 10px; line-height: 1.5; }
+.regime-dogs { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
 .regime-dog {
-  background: #ec4899;
-  color: white;
-  padding: 4px 10px;
-  border-radius: 16px;
-  font-size: 0.8rem;
-  font-weight: bold;
+  background: #ec4899; color: white; padding: 4px 10px;
+  border-radius: 16px; font-size: 0.8rem; font-weight: bold;
 }
-.regime-dog.cold {
-  background: #475569;
-  color: #cbd5e1;
-}
+.regime-dog.cold { background: #475569; color: #cbd5e1; }
 
 /* ============ COMBINACIONES MÚLTIPLES ============ */
 .combos-card {
@@ -114,52 +252,21 @@ header p { font-size: 0.85rem; color: #94a3b8; }
 .combo-item.wheel { border-left-color: #f43f5e; }
 .combo-item.cover { border-left-color: #10b981; }
 
-.combo-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-.combo-type {
-  font-weight: bold;
-  font-size: 0.95rem;
-  color: #fff;
-}
+.combo-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.combo-type { font-weight: bold; font-size: 0.95rem; color: #fff; }
 .combo-confidence {
-  font-size: 0.75rem;
-  padding: 3px 8px;
-  border-radius: 12px;
-  background: #1e293b;
-  color: #fbbf24;
-  border: 1px solid #fbbf24;
+  font-size: 0.75rem; padding: 3px 8px; border-radius: 12px;
+  background: #1e293b; color: #fbbf24; border: 1px solid #fbbf24;
 }
-.combo-detail {
-  font-size: 0.85rem;
-  color: #cbd5e1;
-  margin-bottom: 6px;
-  line-height: 1.5;
-}
-.combo-dogs {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-top: 8px;
-}
+.combo-detail { font-size: 0.85rem; color: #cbd5e1; margin-bottom: 6px; line-height: 1.5; }
+.combo-dogs { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
 .combo-dog-badge {
-  background: #1e293b;
-  border: 1px solid #10b981;
-  color: #6ee7b7;
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  font-weight: bold;
+  background: #1e293b; border: 1px solid #10b981; color: #6ee7b7;
+  padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: bold;
 }
 .combo-stake {
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px dashed #334155;
-  font-size: 0.8rem;
-  color: #94a3b8;
+  margin-top: 8px; padding-top: 8px; border-top: 1px dashed #334155;
+  font-size: 0.8rem; color: #94a3b8;
 }
 .combo-stake strong { color: #10b981; }
 
@@ -219,8 +326,6 @@ header p { font-size: 0.85rem; color: #94a3b8; }
 .bulk-preview td { padding: 5px 6px; border-bottom: 1px solid #1e293b; color: #e2e8f0; }
 .bulk-preview tr.valid td { color: #86efac; }
 .bulk-preview tr.invalid td { color: #fca5a5; text-decoration: line-through; }
-.bulk-preview .status-ok { color: #10b981; }
-.bulk-preview .status-err { color: #ef4444; }
 
 /* ============ ANÁLISIS ============ */
 .section-title {
@@ -254,7 +359,6 @@ header p { font-size: 0.85rem; color: #94a3b8; }
 .stake-item { padding: 6px 0; border-bottom: 1px dashed #334155; font-size: 0.85rem; }
 .stake-item:last-child { border-bottom: none; }
 .money { color: #10b981; }
-.conf-small { font-size: 0.75rem; color: #fbbf24; }
 
 .badge-markov, .badge-pale, .badge-tri, .badge-corr, .badge-mirror {
   background: #1f2937; padding: 6px 10px; border-radius: 6px; font-size: 0.85rem;
@@ -330,6 +434,6 @@ header p { font-size: 0.85rem; color: #94a3b8; }
 @media (max-width: 600px) {
   .tips-grid { grid-template-columns: 1fr; }
   .grid-4 { grid-template-columns: repeat(2, 1fr); }
-  .bulk-actions { flex-direction: column; }
+  .bulk-actions, .ocr-buttons { grid-template-columns: 1fr; }
   .btn-bulk-parse, .btn-bulk-save, .btn-bulk-clear { min-width: 100%; }
 }
