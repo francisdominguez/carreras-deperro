@@ -18,16 +18,25 @@ const raceForm = document.getElementById("raceForm");
 const historyList = document.getElementById("historyList");
 const statsContainer = document.getElementById("statsContainer");
 
-// Guardar carrera en Firebase
+// Guardar carrera y palé en Firebase
 raceForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const raceId = document.getElementById("raceId").value;
     const winner = Number(document.getElementById("winner").value);
+    const secondPlaceValue = document.getElementById("secondPlace").value;
+    const secondPlace = secondPlaceValue ? Number(secondPlaceValue) : null;
+
+    // Validación para evitar que elijan el mismo perro en 1ro y 2do
+    if (secondPlace && winner === secondPlace) {
+        alert("El primer y segundo lugar no pueden ser el mismo perro.");
+        return;
+    }
 
     try {
         await addDoc(collection(db, "races"), {
             raceId,
             winner,
+            secondPlace,
             timestamp: new Date()
         });
         raceForm.reset();
@@ -38,9 +47,9 @@ raceForm.addEventListener("submit", async (e) => {
     }
 });
 
-// Análisis exhaustivo de patrones, frecuencias y probabilidades
+// Análisis exhaustivo de patrones, frecuencias, probabilidades y palés
 async function loadAndAnalyzeRaces() {
-    statsContainer.innerHTML = "<p>Calculando patrones y probabilidades...</p>";
+    statsContainer.innerHTML = "<p>Calculando patrones, probabilidades y palés...</p>";
     historyList.innerHTML = "<li>Cargando historial...</li>";
 
     try {
@@ -52,7 +61,6 @@ async function loadAndAnalyzeRaces() {
             races.push(doc.data());
         });
 
-        let chronologicalRaces = [...races].reverse();
         let total = races.length;
 
         if (total === 0) {
@@ -75,6 +83,16 @@ async function loadAndAnalyzeRaces() {
 
         let lastWinner = races[0] ? races[0].winner : null;
 
+        // Análisis de combinaciones de Palé más frecuentes
+        let paleCounts = {};
+        races.forEach(r => {
+            if (r.winner && r.secondPlace) {
+                let pair = [r.winner, r.secondPlace].sort((a, b) => a - b).join(" - ");
+                paleCounts[pair] = (paleCounts[pair] || 0) + 1;
+            }
+        });
+        let sortedPales = Object.entries(paleCounts).sort((a, b) => b[1] - a[1]);
+
         let recommendations = [];
         for (let i = 1; i <= 8; i++) {
             let freqPercent = (counts[i] / total) * 100;
@@ -90,7 +108,7 @@ async function loadAndAnalyzeRaces() {
                 <p>Total analizadas: <strong>${total} carreras</strong> | Último ganador: <strong style="color:#6366f1;">Perro #${lastWinner || 'N/A'}</strong></p>
             </div>
             
-            <h3 style="font-size: 0.95rem; color: #a5b4fc; margin-bottom: 8px;">🎯 Top Recomendaciones para la Siguiente Jugada:</h3>
+            <h3 style="font-size: 0.95rem; color: #a5b4fc; margin-bottom: 8px;">🎯 Top Recomendaciones para Ganador:</h3>
             <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 15px;">
         `;
 
@@ -105,7 +123,22 @@ async function loadAndAnalyzeRaces() {
             `;
         });
 
-        htmlStats += `</div><h3 style="font-size: 0.95rem; color: #a5b4fc; margin-bottom: 8px;">📊 Desglose por Perro (Frecuencia y Sequía):</h3>
+        // Sección de Palés más recurrentes
+        if (sortedPales.length > 0) {
+            htmlStats += `</div><h3 style="font-size: 0.95rem; color: #f43f5e; margin-bottom: 8px;">🔗 Palés más recurrentes en tus registros:</h3>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 15px;">`;
+            
+            sortedPales.slice(0, 3).forEach(([pair, count]) => {
+                htmlStats += `<div style="background:#1f2937; border: 1px solid #f43f5e; padding:6px 10px; border-radius:6px; font-size:0.85rem;">
+                    <strong>#${pair.replace(' - ', ' y #')}</strong> <span style="color:#9ca3af;">(${count} veces)</span>
+                </div>`;
+            });
+            htmlStats += `</div>`;
+        } else {
+            htmlStats += `</div>`;
+        }
+
+        htmlStats += `<h3 style="font-size: 0.95rem; color: #a5b4fc; margin-bottom: 8px;">📊 Desglose por Perro (Frecuencia y Sequía):</h3>
         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;">`;
 
         for (let i = 1; i <= 8; i++) {
@@ -121,7 +154,8 @@ async function loadAndAnalyzeRaces() {
 
         let htmlHistory = "";
         races.slice(0, 15).forEach(r => {
-            htmlHistory += `<li><span>Carrera: <strong>${r.raceId}</strong></span> <span style="color: #6366f1;">Ganó: Perro #${r.winner}</span></li>`;
+            let paleText = r.secondPlace ? ` | <span style="color:#f43f5e;">Palé: #${r.winner} y #${r.secondPlace}</span>` : '';
+            htmlHistory += `<li><span>Carrera: <strong>${r.raceId}</strong></span> <span style="color: #6366f1;">1ro: #${r.winner}</span>${paleText}</li>`;
         });
         historyList.innerHTML = htmlHistory;
 
