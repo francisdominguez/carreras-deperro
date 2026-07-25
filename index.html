@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Control de Carreras - Optimizado</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🏆 Control de Carreras</h1>
+    <p>Análisis inteligente en una pantalla</p>
+  </header>
+
+  <!-- TABS DE NAVEGACIÓN -->
+  <div class="tabs-nav">
+    <button class="tab-btn active" data-tab="ingresar">📝 Ingresar</button>
+    <button class="tab-btn" data-tab="analisis">📊 Análisis</button>
+    <button class="tab-btn" data-tab="regimen">🌡️ Régimen</button>
+    <button class="tab-btn" data-tab="historial">📜 Historial</button>
+  </div>
+
+  <!-- CONTENIDO DE TABS -->
+  <div class="tab-content">
+    
+    <!-- TAB 1: INGRESAR DATOS -->
+    <div id="tab-ingresar" class="tab-panel active">
+      
+      <!-- Registro Rápido -->
+      <div class="card compact">
+        <h2>📝 Registro Rápido</h2>
+        <form id="raceForm" class="compact-form">
+          <div class="form-row">
+            <div class="input-group">
+              <label>Carrera:</label>
+              <input type="text" id="raceId" required placeholder="0287">
+            </div>
+            <div class="input-group">
+              <label>🥇 1ro:</label>
+              <select id="winner" required>
+                <option value="">-</option>
+                <option value="1">1</option><option value="2">2</option>
+                <option value="3">3</option><option value="4">4</option>
+                <option value="5">5</option><option value="6">6</option>
+                <option value="7">7</option><option value="8">8</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label>🥈 2do:</label>
+              <select id="secondPlace">
+                <option value="">-</option>
+                <option value="1">1</option><option value="2">2</option>
+                <option value="3">3</option><option value="4">4</option>
+                <option value="5">5</option><option value="6">6</option>
+                <option value="7">7</option><option value="8">8</option>
+              </select>
+            </div>
+            <button type="submit" class="btn-save">💾</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- OCR - Subir Foto -->
+      <div class="card compact ocr-section">
+        <h2>📸 Subir Foto del Ticket (OCR)</h2>
+        <div class="ocr-buttons">
+          <label class="btn-ocr btn-camera">
+            📷 Tomar Foto
+            <input type="file" id="fileCamera" accept="image/*" capture="environment" style="display:none;">
+          </label>
+          <label class="btn-ocr btn-gallery">
+            ️ Galería
+            <input type="file" id="fileGallery" accept="image/*" style="display:none;">
+          </label>
+        </div>
+        <div id="ocrStatus" class="ocr-status"></div>
+        <div id="ocrImagePreview" class="ocr-image-preview"></div>
+        <div id="ocrResult" class="ocr-result"></div>
+      </div>
+
+      <!-- Carga Masiva Manual -->
+      <div class="card compact">
+        <h2>⚡ Carga Masiva Manual</h2>
+        <textarea id="bulkInput" class="bulk-textarea" placeholder="Pega tickets aquí:
+0287  25/07/2026 15:07:30  5 - 2
+0286  25/07/2026 15:03:30  7 - 2"></textarea>
+        <div class="bulk-actions">
+          <button class="btn-bulk-parse" id="btnParse">🔍 Previsualizar</button>
+          <button class="btn-bulk-save" id="btnBulkSave">💾 Guardar</button>
+          <button class="btn-bulk-clear" id="btnBulkClear">🗑️ Limpiar</button>
+        </div>
+        <div id="bulkPreview" class="bulk-preview"></div>
+      </div>
+    </div>
+
+    <!-- TAB 2: ANÁLISIS -->
+    <div id="tab-analisis" class="tab-panel">
+      <div class="card">
+        <!-- 🆕 NUEVA SECCIÓN: PREDICCIÓN INMEDIATA -->
+        <div id="proximaCarrera" class="proxima-box">
+          <p>Calculando predicción...</p>
+        </div>
+
+        <div class="info-bar">
+          <span id="totalCarreras">0</span> carreras | 
+          Último: <strong id="ultimoGanador">#-</strong> |
+          Secuencia: <span id="secuencia" class="seq">-</span>
+        </div>
+        
+        <h3>🎯 Top Recomendaciones:</h3>
+        <div id="topRecomendaciones" class="grid-compact">
+          <p>Cargando...</p>
+        </div>
+
+        <h3>🔀 Markov 1° (después de último ganador):</h3>
+        <div id="markov1" class="flex-wrap">
+          <p>Cargando...</p>
+        </div>
+
+        <h3>🔗 Palés Direccionales:</h3>
+        <div id="palesDir" class="flex-wrap">
+          <p>Cargando...</p>
+        </div>
+
+        <h3>❌ Perros a Eliminar:</h3>
+        <div id="eliminar" class="elim-box">
+          <p>Cargando...</p>
+        </div>
+
+        <h3>⚠️ Alertas:</h3>
+        <div id="alertas" class="anom-box">
+          <p>Cargando...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: RÉGIMEN + COMBINACIONES -->
+    <div id="tab-regimen" class="tab-panel">
+      <div class="card">
+        <h3>🌡️ Régimen del Día:</h3>
+        <div id="regimenContainer">
+          <p>Cargando...</p>
+        </div>
+
+        <h3>🎰 Combinaciones Múltiples:</h3>
+        <div id="combosContainer">
+          <p>Cargando...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: HISTORIAL + STATS -->
+    <div id="tab-historial" class="tab-panel">
+      <div class="card">
+        <h3>📜 Últimas Carreras:</h3>
+        <ul id="historyList" class="history-compact">
+          <li>Cargando...</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>📊 Desglose por Perro:</h3>
+        <div id="desglosePerros" class="grid-stats">
+          <p>Cargando...</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Tesseract.js para OCR -->
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.4/dist/tesseract.min.js"></script>
+<script type="module" src="app.js"></script>
+</body>
+</html>
