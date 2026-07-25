@@ -2,178 +2,176 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
-<title>Control y Análisis Profesional de Carreras</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Control de Carreras - Optimizado</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="container">
   <header>
-    <h1>🏆 Control Profesional de Carreras</h1>
-    <p>12 algoritmos + OCR + Combinaciones</p>
+    <h1>🏆 Control de Carreras</h1>
+    <p>Análisis inteligente en una pantalla</p>
   </header>
 
-  <main class="tab-panels">
+  <!-- TABS DE NAVEGACIÓN -->
+  <div class="tabs-nav">
+    <button class="tab-btn active" data-tab="ingresar">📝 Ingresar</button>
+    <button class="tab-btn" data-tab="analisis">📊 Análisis</button>
+    <button class="tab-btn" data-tab="regimen">🌡️ Régimen</button>
+    <button class="tab-btn" data-tab="historial">📜 Historial</button>
+  </div>
 
-    <!-- ================= TAB: TICKET (OCR) ================= -->
-    <section class="tab-panel" id="panel-ticket" data-tab="ticket">
-      <div class="card ocr-card">
-        <h2>📸 Subir Foto del Ticket (Lectura Automática)</h2>
-        <p class="ocr-desc">Toma foto o sube imagen del ticket impreso por la banca. El sistema extrae automáticamente: Carrera, 1ro y 2do.</p>
+  <!-- CONTENIDO DE TABS -->
+  <div class="tab-content">
+    
+    <!-- TAB 1: INGRESAR DATOS -->
+    <div id="tab-ingresar" class="tab-panel active">
+      
+      <!-- Registro Rápido -->
+      <div class="card compact">
+        <h2>📝 Registro Rápido</h2>
+        <form id="raceForm" class="compact-form">
+          <div class="form-row">
+            <div class="input-group">
+              <label>Carrera:</label>
+              <input type="text" id="raceId" required placeholder="0287">
+            </div>
+            <div class="input-group">
+              <label>🥇 1ro:</label>
+              <select id="winner" required>
+                <option value="">-</option>
+                <option value="1">1</option><option value="2">2</option>
+                <option value="3">3</option><option value="4">4</option>
+                <option value="5">5</option><option value="6">6</option>
+                <option value="7">7</option><option value="8">8</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label>🥈 2do:</label>
+              <select id="secondPlace">
+                <option value="">-</option>
+                <option value="1">1</option><option value="2">2</option>
+                <option value="3">3</option><option value="4">4</option>
+                <option value="5">5</option><option value="6">6</option>
+                <option value="7">7</option><option value="8">8</option>
+              </select>
+            </div>
+            <button type="submit" class="btn-save">💾</button>
+          </div>
+        </form>
+      </div>
 
+      <!-- OCR - Subir Foto -->
+      <div class="card compact ocr-section">
+        <h2>📸 Subir Foto del Ticket (OCR)</h2>
         <div class="ocr-buttons">
           <label class="btn-ocr btn-camera">
             📷 Tomar Foto
             <input type="file" id="fileCamera" accept="image/*" capture="environment" style="display:none;">
           </label>
           <label class="btn-ocr btn-gallery">
-            🖼️ Subir de Galería
+            ️ Galería
             <input type="file" id="fileGallery" accept="image/*" style="display:none;">
           </label>
         </div>
-
         <div id="ocrStatus" class="ocr-status"></div>
         <div id="ocrImagePreview" class="ocr-image-preview"></div>
         <div id="ocrResult" class="ocr-result"></div>
       </div>
-    </section>
 
-    <!-- ================= TAB: REGISTRAR (masiva + individual) ================= -->
-    <section class="tab-panel" id="panel-registrar" data-tab="registrar">
-      <div class="card bulk-card">
-        <h2>⚡ Carga Masiva Manual (pegar texto)</h2>
-        <p class="bulk-desc">Pega los tickets. Un ticket por línea.</p>
-        <div class="bulk-format">
-          <strong>📋 Formatos:</strong>
-          <code>C125 3 5</code> · <code>C125, 3, 5</code> · <code>125-3-5</code>
-          <br><small>(Carrera - 1ro - 2do)</small>
-        </div>
-        <textarea id="bulkInput" class="bulk-textarea" placeholder="Ejemplo:
-C125 3 5
-C126 7 2
-C127 1 4"></textarea>
+      <!-- Carga Masiva Manual -->
+      <div class="card compact">
+        <h2>⚡ Carga Masiva Manual</h2>
+        <textarea id="bulkInput" class="bulk-textarea" placeholder="Pega tickets aquí:
+0287  25/07/2026 15:07:30  5 - 2
+0286  25/07/2026 15:03:30  7 - 2"></textarea>
         <div class="bulk-actions">
           <button class="btn-bulk-parse" id="btnParse">🔍 Previsualizar</button>
-          <button class="btn-bulk-save" id="btnBulkSave">💾 Guardar Todas</button>
+          <button class="btn-bulk-save" id="btnBulkSave">💾 Guardar</button>
           <button class="btn-bulk-clear" id="btnBulkClear">🗑️ Limpiar</button>
         </div>
         <div id="bulkPreview" class="bulk-preview"></div>
       </div>
+    </div>
 
+    <!-- TAB 2: ANÁLISIS -->
+    <div id="tab-analisis" class="tab-panel">
       <div class="card">
-        <h2>📝 Registro Individual (opcional)</h2>
-        <form id="raceForm">
-          <div class="input-group">
-            <label for="raceId">Número de Carrera:</label>
-            <input type="text" id="raceId" required placeholder="Ej: C-125">
-          </div>
-          <div class="input-group">
-            <label for="winner">🥇 Primer Lugar:</label>
-            <select id="winner" required>
-              <option value="">Selecciona (1-8)</option>
-              <option value="1">Perro #1</option><option value="2">Perro #2</option>
-              <option value="3">Perro #3</option><option value="4">Perro #4</option>
-              <option value="5">Perro #5</option><option value="6">Perro #6</option>
-              <option value="7">Perro #7</option><option value="8">Perro #8</option>
-            </select>
-          </div>
-          <div class="input-group">
-            <label for="secondPlace">🥈 Segundo Lugar (Palé):</label>
-            <select id="secondPlace">
-              <option value="">Ninguno</option>
-              <option value="1">Perro #1</option><option value="2">Perro #2</option>
-              <option value="3">Perro #3</option><option value="4">Perro #4</option>
-              <option value="5">Perro #5</option><option value="6">Perro #6</option>
-              <option value="7">Perro #7</option><option value="8">Perro #8</option>
-            </select>
-          </div>
-          <button type="submit" class="btn-primary">💾 Guardar Carrera</button>
-        </form>
-      </div>
-    </section>
-
-    <!-- ================= TAB: RÉGIMEN ================= -->
-    <section class="tab-panel" id="panel-regimen" data-tab="regimen">
-      <div class="card regime-card">
-        <h2>🌡️ Régimen del Día (Patrón Actual)</h2>
-        <div id="regimeContainer">
-          <p>Analizando patrón actual...</p>
+        <!-- 🆕 NUEVA SECCIÓN: PREDICCIÓN INMEDIATA -->
+        <div id="proximaCarrera" class="proxima-box">
+          <p>Calculando predicción...</p>
         </div>
-      </div>
-    </section>
 
-    <!-- ================= TAB: COMBOS ================= -->
-    <section class="tab-panel" id="panel-combos" data-tab="combos">
-      <div class="card combos-card">
-        <h2>🎰 Generador de Combinaciones Múltiples</h2>
-        <p class="combos-desc">Con los mismos datos, el sistema genera múltiples estrategias de apuesta.</p>
-        <div id="combosContainer">
-          <p>Generando combinaciones...</p>
+        <div class="info-bar">
+          <span id="totalCarreras">0</span> carreras | 
+          Último: <strong id="ultimoGanador">#-</strong> |
+          Secuencia: <span id="secuencia" class="seq">-</span>
         </div>
-      </div>
-    </section>
+        
+        <h3>🎯 Top Recomendaciones:</h3>
+        <div id="topRecomendaciones" class="grid-compact">
+          <p>Cargando...</p>
+        </div>
 
-    <!-- ================= TAB: ANÁLISIS (motor + historial) ================= -->
-    <section class="tab-panel" id="panel-analisis" data-tab="analisis">
-      <div class="card ev-card">
-        <h2>💵 Valor Real (EV) — lo único que importa</h2>
-        <p class="ev-desc">Compara la probabilidad real (con margen de error) contra lo que tu banca paga. Esto es lo que decide si una jugada conviene, no las rachas.</p>
-        <div id="evContainer">
+        <h3>🔀 Markov 1° (después de último ganador):</h3>
+        <div id="markov1" class="flex-wrap">
+          <p>Cargando...</p>
+        </div>
+
+        <h3>🔗 Palés Direccionales:</h3>
+        <div id="palesDir" class="flex-wrap">
+          <p>Cargando...</p>
+        </div>
+
+        <h3>❌ Perros a Eliminar:</h3>
+        <div id="eliminar" class="elim-box">
+          <p>Cargando...</p>
+        </div>
+
+        <h3>⚠️ Alertas:</h3>
+        <div id="alertas" class="anom-box">
           <p>Cargando...</p>
         </div>
       </div>
+    </div>
 
+    <!-- TAB 3: RÉGIMEN + COMBINACIONES -->
+    <div id="tab-regimen" class="tab-panel">
       <div class="card">
-        <h2>🧠 Motor de Análisis Profesional (descriptivo)</h2>
-        <div id="statsContainer">
-          <p>Procesando algoritmos...</p>
+        <h3>🌡️ Régimen del Día:</h3>
+        <div id="regimenContainer">
+          <p>Cargando...</p>
+        </div>
+
+        <h3>🎰 Combinaciones Múltiples:</h3>
+        <div id="combosContainer">
+          <p>Cargando...</p>
         </div>
       </div>
+    </div>
 
+    <!-- TAB 4: HISTORIAL + STATS -->
+    <div id="tab-historial" class="tab-panel">
       <div class="card">
-        <h2>📜 Historial Reciente</h2>
-        <ul id="historyList">
+        <h3>📜 Últimas Carreras:</h3>
+        <ul id="historyList" class="history-compact">
           <li>Cargando...</li>
         </ul>
       </div>
-    </section>
 
-    <!-- ================= TAB: TIPS ================= -->
-    <section class="tab-panel" id="panel-tips" data-tab="tips">
-      <div class="card tips-card">
-        <h2>💡 Consejos Profesionales</h2>
-        <div class="tips-grid">
-          <div class="tip-item"><span class="tip-icon">📸</span><div><strong>Sube Fotos</strong><p>Toma foto al ticket y el sistema lee solo.</p></div></div>
-          <div class="tip-item"><span class="tip-icon">🎯</span><div><strong>Score Compuesto</strong><p>Tu brújula principal.</p></div></div>
-          <div class="tip-item"><span class="tip-icon">🔀</span><div><strong>Confirma con Markov</strong><p>Score + Markov = apuesta fuerte.</p></div></div>
-          <div class="tip-item"><span class="tip-icon">🎰</span><div><strong>Múltiples Combinaciones</strong><p>No juegues solo 1, usa varias.</p></div></div>
-          <div class="tip-item"><span class="tip-icon">💰</span><div><strong>Plan de Staking</strong><p>Nunca más del 5% del bankroll.</p></div></div>
-          <div class="tip-item"><span class="tip-icon">🌡️</span><div><strong>Régimen del Día</strong><p>Cada día tiene su patrón.</p></div></div>
-          <div class="tip-item"><span class="tip-icon">⚠️</span><div><strong>Anomalías = Oportunidades</strong><p>Patrones inusuales explotables.</p></div></div>
-          <div class="tip-item"><span class="tip-icon">🔗</span><div><strong>Palés Direccionales</strong><p>#3→#5 ≠ #5→#3.</p></div></div>
-        </div>
-        <div class="tip-warning">
-          <strong>⚠️ Regla de oro:</strong> La estadística ayuda, pero no garantiza. Gestiona tu bankroll con disciplina.
+      <div class="card">
+        <h3>📊 Desglose por Perro:</h3>
+        <div id="desglosePerros" class="grid-stats">
+          <p>Cargando...</p>
         </div>
       </div>
-    </section>
+    </div>
 
-  </main>
-
-  <!-- ================= NAV INFERIOR (elige qué ver) ================= -->
-  <nav class="tabbar">
-    <button class="tab-btn" data-tab="ticket"><span class="tab-icon">📸</span>Ticket</button>
-    <button class="tab-btn" data-tab="registrar"><span class="tab-icon">✍️</span>Registrar</button>
-    <button class="tab-btn" data-tab="regimen"><span class="tab-icon">🌡️</span>Régimen</button>
-    <button class="tab-btn" data-tab="combos"><span class="tab-icon">🎰</span>Combos</button>
-    <button class="tab-btn" data-tab="analisis"><span class="tab-icon">🧠</span>Análisis</button>
-    <button class="tab-btn" data-tab="tips"><span class="tab-icon">💡</span>Tips</button>
-  </nav>
+  </div>
 </div>
 
 <!-- Tesseract.js para OCR -->
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.4/dist/tesseract.min.js"></script>
-<script src="tabs.js"></script>
 <script type="module" src="app.js"></script>
 </body>
 </html>
