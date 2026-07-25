@@ -105,6 +105,78 @@ header p {
   padding-bottom: 4px;
 }
 
+/* 🆕 PREDICCIÓN INMEDIATA */
+.proxima-box {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  border: 2px solid #f59e0b;
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 12px;
+  color: #000;
+}
+
+.proxima-title {
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.proxima-main {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.proxima-dog {
+  font-size: 2rem;
+  font-weight: bold;
+  text-align: center;
+  margin: 8px 0;
+}
+
+.proxima-label {
+  font-size: 0.8rem;
+  text-align: center;
+  opacity: 0.8;
+}
+
+.proxima-pale {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.proxima-pale-item {
+  text-align: center;
+}
+
+.proxima-pale-dog {
+  font-size: 1.3rem;
+  font-weight: bold;
+}
+
+.proxima-pale-label {
+  font-size: 0.7rem;
+  opacity: 0.8;
+}
+
+.proxima-confidence {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  padding: 6px;
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: bold;
+  margin-top: 8px;
+}
+
 /* FORMULARIO COMPACTO */
 .compact-form .form-row {
   display: grid;
